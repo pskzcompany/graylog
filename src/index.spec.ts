@@ -31,6 +31,7 @@ if (USE_SNAPSHOT_MOCKS) {
   // Mock client data
   client._generateRandomId = async (n) => Buffer.from('1'.repeat(n));
   client.servers = [{ host: 'mock', port: 12201 }];
+  client.hostname = 'mock-host';
 
   // Mock Date.now
   global.Date.now = jest.fn(() => new Date('2020-04-07T10:20:30Z').getTime());
