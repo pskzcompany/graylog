@@ -1730,6 +1730,11 @@ confusing-browser-globals@^1.0.9:
   resolved "https://registry.yarnpkg.com/confusing-browser-globals/-/confusing-browser-globals-1.0.9.tgz#72bc13b483c0276801681871d4898516f8f54fdd"
   integrity sha512-KbS1Y0jMtyPgIxjO7ZzMAuUpAKMt1SzCL9fsrKsX6b0zJPTaT0SiSPmewwVZg9UAO83HVIlEhZF84LIjZ0lmAw==
 
+connection-string@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/connection-string/-/connection-string-3.2.0.tgz#e8c49ee12a38157d6c731b6a7867a86130155820"
+  integrity sha512-7dV1nTLdhemVGL5vR/9CGzOtwPbpejmfHtj8bl2+hOE3cICjOhZRv+UCOkA3p+mjgtrjp4aQqQ74ZmjzGuqI9Q==
+
 console-control-strings@^1.0.0, console-control-strings@^1.1.0, console-control-strings@~1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/console-control-strings/-/console-control-strings-1.1.0.tgz#3d7cf4464db6446ea644bf4b39507f9851008e8e"

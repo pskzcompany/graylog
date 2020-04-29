@@ -172,4 +172,21 @@ describe('Graylog', () => {
     expect(res).toBe(false);
     expect(lastError?.message).toBe('Connection error');
   });
+
+  it('Checking connection string', () => {
+    const c1 = new Graylog('gelf://10.0.0.1:12201');
+    expect(c1.servers).toEqual([{ host: '10.0.0.1', port: 12201 }]);
+
+    const c2 = new Graylog(
+      'gelf://10.0.0.1:12201,10.0.0.2:12202?hostname=host&facility=Node&bufferSize=1000&deflate=never'
+    );
+    expect(c2.servers).toEqual([
+      { host: '10.0.0.1', port: 12201 },
+      { host: '10.0.0.2', port: 12202 },
+    ]);
+    expect(c2.hostname).toEqual('host');
+    expect(c2.facility).toEqual('Node');
+    expect(c2.bufferSize).toEqual(1000);
+    expect(c2.deflate).toEqual('never');
+  });
 });

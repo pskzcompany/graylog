@@ -20,7 +20,18 @@ format which works via UDP.
 
 ```ts
 class Graylog {
-  constructor(config: GraylogConfig);
+  /**
+   * Create Graylog client instance.
+   *
+   * It accepts config object or a connection string.
+   *
+   * Simple connection string:
+   * gelf://10.0.0.1:12201
+   *
+   * Full connection string with multiple servers & config options:
+   * gelf://10.0.0.1:12201,10.0.0.2:12201?hostname=host&facility=Node.js&bufferSize=1400&deflate=optimal
+   */
+  constructor(opts: GraylogOptions | string);
 
   // The following methods return
   // - sended bytes via network
@@ -93,7 +104,7 @@ class Graylog {
 }
 ```
 
-### Configuration `GraylogConfig`
+### Configuration via object
 
 ```ts
 import Graylog from '@pskzcompany/graylog';
@@ -135,6 +146,29 @@ const logger = new Graylog({
    */
   deflate: 'always',
 });
+```
+
+### Configuration via connection string
+
+You may use connection string for Graylog configuration. It's useful for Docker/Kubernetes when you want provide all config options via just one ENV variable. Eg.
+
+Simple URI:
+
+```txt
+GRAYLOG_URI=gelf://10.0.0.1:12201
+```
+
+Full URI with multiple servers and configuration options:
+
+```txt
+GRAYLOG_URI=gelf://10.0.0.1:12201,10.0.0.2:12201?hostname=host&facility=Node.js&bufferSize=1400&deflate=optimal
+```
+
+So then you may use the following code snippet:
+
+```ts
+import Graylog from '@pskzcompany/graylog';
+const logger = new Graylog(process.env.GRAYLOG_URI);
 ```
 
 ### Code snippets

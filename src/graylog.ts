@@ -5,6 +5,7 @@ import os from 'os';
 import { promisify } from 'util';
 import { GraylogGelfPayload, GraylogLevelEnum, GraylogGelfAdditionalField } from './definitions';
 import { EventEmitter } from 'events';
+import { ConnectionString } from 'connection-string';
 
 const randomBytesAsync = promisify<number, Buffer>(crypto.randomBytes);
 const deflateAsync = promisify<zlib.InputType, Buffer>(zlib.deflate);
@@ -14,7 +15,9 @@ export interface HostPort {
   port: number;
 }
 
-export interface GraylogConfig {
+export type GraylogOptions = GraylogOptionsAsObject | string;
+
+export interface GraylogOptionsAsObject {
   /**
    * list of servers
    * for sending message will be used next server (like round-robin)
@@ -38,7 +41,7 @@ export interface GraylogConfig {
    * max UDP packet size, should never exceed the MTU of your system
    * (optional, default: 1400)
    */
-  bufferSize?: number;
+  bufferSize?: number | string;
 
   /**
    * use compression for messages – 'optimal' | 'always' | 'never'
@@ -64,35 +67,79 @@ export type AdditionalFields = {
  * or accept uncaught exceptions (node throws if you don't listen for "error").
  */
 export default class Graylog extends EventEmitter {
-  config: GraylogConfig;
   servers: HostPort[];
   client: dgram.Socket | undefined;
   hostname: string;
   facility: string;
-  deflate: NonNullable<GraylogConfig['deflate']>;
+  deflate: NonNullable<GraylogOptionsAsObject['deflate']>;
+  bufferSize = 1400;
 
   // a bit less than a typical MTU of 1500 to be on the safe side
-  _bufferSize = 1400;
   _unsentMessages = 0;
   _unsentChunks = 0;
   _callCount = 0;
   _destroyIfNeeded: undefined | Function = undefined;
-  _onError?: (e: Error) => any;
 
-  constructor(config: GraylogConfig) {
+  /**
+   * Create Graylog client instance.
+   *
+   * It accepts config object or a connection string.
+   *
+   * Simple connection string:
+   * gelf://10.0.0.1:12201
+   *
+   * Full connection string with multiple servers & config options:
+   * gelf://10.0.0.1:12201,10.0.0.2:12201?hostname=host&facility=Node.js&bufferSize=1400&deflate=optimal
+   */
+  constructor(options: GraylogOptions) {
     super();
 
-    this.config = config;
-    this.servers = config.servers.map((s) => ({ ...s })); // deep copy
-    this.hostname = config.hostname || os.hostname();
-    this.facility = config.facility || 'Node.js';
-    this.deflate = config.deflate || 'optimal';
-    if (this.deflate !== 'optimal' && this.deflate !== 'always' && this.deflate !== 'never') {
-      throw new Error(
-        'deflate must be one of "optimal", "always", or "never". was "' + this.deflate + '"'
-      );
+    // Parse options
+    let opts: GraylogOptionsAsObject;
+    if (typeof options === 'object') {
+      opts = options;
+    } else if (typeof options === 'string') {
+      const { hosts, params } = new ConnectionString(options);
+      opts = {
+        ...params,
+        servers: hosts ? hosts.map(({ name, port }) => ({ host: name, port } as any)) : [],
+      };
+    } else {
+      throw new Error(`You must provide options to Graylog constructor`);
     }
-    if (config?.bufferSize && config.bufferSize > 0) this._bufferSize = config.bufferSize;
+
+    // Check options
+    if (typeof opts === 'object') {
+      this.servers = opts.servers.map(({ host, port }) => {
+        if (!host || typeof host !== 'string') {
+          throw new Error('You provide incorrect HOST. It should be non-empty string.');
+        }
+        if (!port || typeof port !== 'number') {
+          throw new Error('You provide incorrect PORT. It should be non-empty number.');
+        }
+        return { host, port };
+      });
+      this.hostname = opts.hostname || os.hostname();
+      this.facility = opts.facility || 'Node.js';
+      this.deflate = opts.deflate || 'optimal';
+      if (this.deflate !== 'optimal' && this.deflate !== 'always' && this.deflate !== 'never') {
+        throw new Error(
+          'deflate must be one of "optimal", "always", or "never". was "' + this.deflate + '"'
+        );
+      }
+      if (opts?.bufferSize) {
+        const bufferSize =
+          typeof opts.bufferSize === 'string' ? parseInt(opts.bufferSize) : opts.bufferSize;
+
+        if (typeof bufferSize === 'number' && bufferSize > 0) {
+          this.bufferSize = bufferSize;
+        } else {
+          throw new Error('You provide incorrect bufferSize. It should be non-empty number.');
+        }
+      }
+    } else {
+      throw Error('For Graylog constructor you need to provide correct options.');
+    }
   }
 
   /**
@@ -216,7 +263,7 @@ export default class Graylog extends EventEmitter {
     const data = Buffer.from(JSON.stringify(payload));
     if (
       this.deflate === 'never' ||
-      (this.deflate === 'optimal' && data.length <= this._bufferSize)
+      (this.deflate === 'optimal' && data.length <= this.bufferSize)
     ) {
       return this._sendData(data);
     } else {
@@ -230,7 +277,7 @@ export default class Graylog extends EventEmitter {
 
     try {
       this._unsentMessages += 1;
-      if (buffer.length <= this._bufferSize) {
+      if (buffer.length <= this.bufferSize) {
         // If data fits one chunk, just send it
         sendedBytes = await this._sendChunk(buffer, this.getServer());
       } else {
@@ -251,7 +298,7 @@ export default class Graylog extends EventEmitter {
    * @see http://docs.graylog.org/en/3.0/pages/gelf.html#chunking
    */
   async _sendChunkedStream(buffer: Buffer): Promise<number> {
-    const bufferSize = this._bufferSize;
+    const bufferSize = this.bufferSize;
     const dataSize = bufferSize - 12; // the data part of the buffer is the buffer size - header size
     const chunkCount = Math.ceil(buffer.length / dataSize);
 
