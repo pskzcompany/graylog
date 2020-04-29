@@ -2,7 +2,7 @@
 
 [![gitlab action](https://github.com/pskzcompany/node-graylog/workflows/test%20&%20build/badge.svg)](https://github.com/pskzcompany/node-graylog/actions)
 [![npm](https://img.shields.io/npm/v/@pskzcompany/graylog.svg)](https://www.npmjs.com/package/@pskzcompany/graylog)
-[![Fully automated version management and package publishing](https://badges.greenkeeper.io/semantic-release/semantic-release.svg)](https://github.com/semantic-release/semantic-release)
+[![Fully automated version management and package publishing](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Node.js client library for [Graylog](https://www.graylog.org/).
 This package was inspired by `node-graylog`. Completely rewritten
