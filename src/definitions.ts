@@ -1,4 +1,4 @@
-export enum GelfLevelEnum {
+export enum GraylogLevelEnum {
   /** system is unusable */
   EMERG = 0,
   /** action must be taken immediately */
@@ -21,7 +21,7 @@ export enum GelfLevelEnum {
  * GELF Payload Specification, Version 1.1 (11/2013)
  * @see http://docs.graylog.org/en/3.0/pages/gelf.html#gelf-payload-specification
  */
-export interface GelfPayloadSpec11 {
+export interface GraylogGelfPayload {
   /** GELF spec version – “1.1”; MUST be set by client library. */
   version: string;
   /** the name of the host, source or application that sent this message; MUST be set by client library. */
@@ -33,7 +33,7 @@ export interface GelfPayloadSpec11 {
   /** Seconds since UNIX epoch with optional decimal places for milliseconds; SHOULD be set by client library. Will be set to the current timestamp (now) by the server if absent. */
   timestamp?: number;
   /** the level equal to the standard syslog levels; optional, default is 1 (ALERT) */
-  level?: GelfLevelEnum;
+  level?: GraylogLevelEnum;
   /** optional, @deprecated. Send as additional field instead. */
   facility?: string;
   /** the line in a file that caused the error (decimal); optional, @deprecated. Send as additional field instead. */
@@ -46,7 +46,7 @@ export interface GelfPayloadSpec11 {
    * Libraries SHOULD not allow to send id as additional field (_id).
    * Graylog server nodes omit this field automatically.
    */
-  [_propName: string]: GelfAdditionalField;
+  [_propName: string]: GraylogGelfAdditionalField;
 }
 
-export type GelfAdditionalField = string | number | Date | undefined;
+export type GraylogGelfAdditionalField = string | number | Date | undefined;

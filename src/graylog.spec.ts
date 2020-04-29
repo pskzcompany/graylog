@@ -22,10 +22,9 @@ if (USE_SNAPSHOT_MOCKS) {
   };
 
   // Mock Socket.send method
-  const socket = client.getClient();
-  socket.send = jest.fn((msg, offset, length, port, address, callback) => {
+  client.getClient().send = jest.fn((msg, offset, length, port, address, callback) => {
     socketSpyData.push({ msg: msg.toString(), offset, length, port, address });
-    callback();
+    callback(null, length);
   }) as any;
 
   // Mock client data
@@ -38,6 +37,10 @@ if (USE_SNAPSHOT_MOCKS) {
 }
 
 describe('Graylog', () => {
+  afterAll(async () => {
+    await client.close();
+  });
+
   it('Sending different parameters', async () => {
     await client.log('ParametersTest - Only short message');
     await client.log('ParametersTest - Short message and json', { cool: 'beans' });
@@ -111,5 +114,52 @@ describe('Graylog', () => {
         deflate: 'not an option' as any,
       });
     }).toThrowError('deflate must be one of');
+  });
+
+  it('Checking `disablePromiseRejection` arg for `_log` operation', async () => {
+    const prevSend = client.getClient().send;
+    client.getClient().send = () => {
+      throw new Error('Connection error');
+    };
+
+    await expect(client._log('msg', {}, 3)).rejects.toThrowError('Connection error');
+    await expect(client._log('msg', {}, 3, false)).rejects.toThrowError('Connection error');
+    await expect(client._log('msg', {}, 3, true)).resolves.toBe(false);
+
+    client.getClient().send = prevSend;
+  });
+
+  it('Checking regular log methods which resolve with false on error', async () => {
+    const prevSend = client.getClient().send;
+    client.getClient().send = () => {
+      throw new Error('Connection error');
+    };
+
+    await expect(client.emergency('msg', {})).resolves.toBe(false);
+    await expect(client.alert('msg', {})).resolves.toBe(false);
+    await expect(client.critical('msg', {})).resolves.toBe(false);
+    await expect(client.error('msg', {})).resolves.toBe(false);
+    await expect(client.warning('msg', {})).resolves.toBe(false);
+    await expect(client.warn('msg', {})).resolves.toBe(false);
+    await expect(client.notice('msg', {})).resolves.toBe(false);
+    await expect(client.info('msg', {})).resolves.toBe(false);
+    await expect(client.log('msg', {})).resolves.toBe(false);
+    await expect(client.debug('msg', {})).resolves.toBe(false);
+
+    client.getClient().send = prevSend;
+  });
+
+  it('Checking that log methods return request bytes', async () => {
+    const requestLength = 130;
+    await expect(client.emergency('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.alert('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.critical('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.error('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.warning('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.warn('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.notice('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.info('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.log('msg', {})).resolves.toBeGreaterThan(requestLength);
+    await expect(client.debug('msg', {})).resolves.toBeGreaterThan(requestLength);
   });
 });
