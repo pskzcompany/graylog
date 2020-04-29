@@ -115,18 +115,27 @@ const logger = new Graylog({
   facility: 'Node.js',
 
   /**
-   * max UDP packet size, should never exceed the
-   * MTU of your system (optional, default: 1400)
+   * max UDP packet size, should never exceed the MTU of your system
+   * (optional, default: 1400)
    */
   bufferSize: 1350,
 
   /**
    * use compression for messages – 'optimal' | 'always' | 'never'
-   * by default used `optimal` which means that
+   * (optional, default: 'optimal)
+   * `optimal` means that
    *  - if message fits UDP packet size it will be sended without compression
    *  - if message is big then will be used deflate before sending
    */
   deflate: 'always',
+
+  /**
+   * this callback will be called if some error occurs when sending message
+   * (optional, default: do nothing)
+   */
+  onError: (e: Error) => {
+    console.error('Error while writing data to graylog:', e.message);
+  },
 });
 ```
 

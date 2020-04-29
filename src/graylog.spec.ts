@@ -117,39 +117,39 @@ describe('Graylog', () => {
   });
 
   it('Checking `disablePromiseRejection` arg for `_log` operation', async () => {
-    const prevSend = client.getClient().send;
-    client.getClient().send = () => {
+    const tmpClient = new Graylog({
+      servers,
+    });
+    tmpClient.getClient().send = () => {
       throw new Error('Connection error');
     };
 
-    await expect(client._log('msg', {}, 3)).rejects.toThrowError('Connection error');
-    await expect(client._log('msg', {}, 3, false)).rejects.toThrowError('Connection error');
-    await expect(client._log('msg', {}, 3, true)).resolves.toBe(false);
-
-    client.getClient().send = prevSend;
+    await expect(tmpClient._log('msg', {}, 3)).rejects.toThrowError('Connection error');
+    await expect(tmpClient._log('msg', {}, 3, false)).rejects.toThrowError('Connection error');
+    await expect(tmpClient._log('msg', {}, 3, true)).resolves.toBe(false);
   });
 
   it('Checking regular log methods which resolve with false on error', async () => {
-    const prevSend = client.getClient().send;
-    client.getClient().send = () => {
+    const tmpClient = new Graylog({
+      servers,
+    });
+    tmpClient.getClient().send = () => {
       throw new Error('Connection error');
     };
 
-    await expect(client.emergency('msg', {})).resolves.toBe(false);
-    await expect(client.alert('msg', {})).resolves.toBe(false);
-    await expect(client.critical('msg', {})).resolves.toBe(false);
-    await expect(client.error('msg', {})).resolves.toBe(false);
-    await expect(client.warning('msg', {})).resolves.toBe(false);
-    await expect(client.warn('msg', {})).resolves.toBe(false);
-    await expect(client.notice('msg', {})).resolves.toBe(false);
-    await expect(client.info('msg', {})).resolves.toBe(false);
-    await expect(client.log('msg', {})).resolves.toBe(false);
-    await expect(client.debug('msg', {})).resolves.toBe(false);
-
-    client.getClient().send = prevSend;
+    await expect(tmpClient.emergency('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.alert('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.critical('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.error('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.warning('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.warn('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.notice('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.info('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.log('msg', {})).resolves.toBe(false);
+    await expect(tmpClient.debug('msg', {})).resolves.toBe(false);
   });
 
-  it('Checking that log methods return request bytes', async () => {
+  it('Checking that log methods return request bytes on success', async () => {
     const requestLength = 130;
     await expect(client.emergency('msg', {})).resolves.toBeGreaterThan(requestLength);
     await expect(client.alert('msg', {})).resolves.toBeGreaterThan(requestLength);
@@ -161,5 +161,23 @@ describe('Graylog', () => {
     await expect(client.info('msg', {})).resolves.toBeGreaterThan(requestLength);
     await expect(client.log('msg', {})).resolves.toBeGreaterThan(requestLength);
     await expect(client.debug('msg', {})).resolves.toBeGreaterThan(requestLength);
+  });
+
+  it('Checking `onError` param', async () => {
+    let lastError;
+    const tmpClient = new Graylog({
+      servers,
+      onError: (e) => {
+        lastError = e;
+      },
+    });
+    tmpClient.getClient().send = () => {
+      throw new Error('Connection error');
+    };
+
+    expect(lastError).toBe(undefined);
+    const res = await tmpClient.log('msg', {});
+    expect(res).toBe(false);
+    expect(lastError?.message).toBe('Connection error');
   });
 });

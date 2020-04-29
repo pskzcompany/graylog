@@ -14,11 +14,44 @@ export interface HostPort {
 }
 
 export interface GraylogConfig {
+  /**
+   * list of servers
+   * for sending message will be used next server (like round-robin)
+   */
   servers: HostPort[];
-  facility?: string;
+
+  /**
+   * the name of this host
+   * (optional, default: os.hostname())
+   */
   hostname?: string;
+
+  /**
+   * the facility for these log messages
+   * (optional, default: "Node.js")
+   * you may override this value per message basis in `meta.facility`
+   */
+  facility?: string;
+
+  /**
+   * max UDP packet size, should never exceed the MTU of your system
+   * (optional, default: 1400)
+   */
   bufferSize?: number;
+
+  /**
+   * use compression for messages – 'optimal' | 'always' | 'never'
+   * (optional, default: 'optimal)
+   * `optimal` means that
+   *  - if message fits UDP packet size it will be sended without compression
+   *  - if message is big then will be used deflate before sending
+   */
   deflate?: 'optimal' | 'always' | 'never';
+
+  /**
+   * this callback will be called if some error occurs when sending message
+   * (optional, default: do nothing)
+   */
   onError?: (e: Error) => any;
 }
 
