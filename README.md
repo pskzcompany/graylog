@@ -1,6 +1,6 @@
 # @pskzcompany/graylog
 
-[![gitlab action](https://github.com/pskzcompany/node-graylog/workflows/nodejs/badge.svg)](https://github.com/pskzcompany/node-graylog/actions)
+[![gitlab action](https://github.com/pskzcompany/node-graylog/workflows/test%20&%20build/badge.svg)](https://github.com/pskzcompany/node-graylog/actions)
 [![npm](https://img.shields.io/npm/v/@pskzcompany/graylog.svg)](https://www.npmjs.com/package/@pskzcompany/graylog)
 [![Fully automated version management and package publishing](https://badges.greenkeeper.io/semantic-release/semantic-release.svg)](https://github.com/semantic-release/semantic-release)
 
