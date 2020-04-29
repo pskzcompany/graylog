@@ -12,7 +12,7 @@
     "access": "public"
   },
   "bugs": {
-    "url": "http://github.com/pskzcompany/node-graylog/issues"
+    "url": "http://github.com/pskzcompany/graylog/issues"
   },
   "keywords": [
     "graylog",
@@ -21,10 +21,10 @@
   "engines": {
     "node": ">=8.0.0"
   },
-  "homepage": "http://github.com/pskzcompany/node-graylog",
+  "homepage": "http://github.com/pskzcompany/graylog",
   "repository": {
     "type": "git",
-    "url": "http://github.com/pskzcompany/node-graylog.git"
+    "url": "http://github.com/pskzcompany/graylog.git"
   },
   "scripts": {
     "build": "rimraf lib && tsc -p ./tsconfig.build.json",

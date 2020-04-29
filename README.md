@@ -1,11 +1,11 @@
 # @pskzcompany/graylog
 
 [![npm](https://img.shields.io/npm/v/@pskzcompany/graylog.svg)](https://www.npmjs.com/package/@pskzcompany/graylog)
-[![gitlab action](https://github.com/pskzcompany/node-graylog/workflows/test%20&%20build/badge.svg)](https://github.com/pskzcompany/node-graylog/actions)
+[![gitlab action](https://github.com/pskzcompany/graylog/workflows/test%20&%20build/badge.svg)](https://github.com/pskzcompany/graylog/actions)
 [![Fully automated version management and package publishing](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Node.js client library for [Graylog](https://www.graylog.org/).
-This package was inspired by `node-graylog`. Completely rewritten
+This package was inspired by `graylog`. Completely rewritten
 on TypeScript, ESNext with async/await. Also was simplified API –
 `full_message` was moved to `meta` param, also was allowed
 modification of any GELF field per message basis via `meta` param
