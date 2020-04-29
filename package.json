@@ -1,12 +1,16 @@
 {
   "name": "@pskzcompany/graylog",
   "version": "0.0.0-semantically-released",
-  "description": "Graylog client library for node.js (updated 2020)",
+  "license": "MIT",
+  "description": "Graylog client library for node.js. Works via UDP protocol with GELF format (supports compression & chunking).",
   "main": "./lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
     "lib"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "http://github.com/pskzcompany/node-graylog/issues"
   },
@@ -18,7 +22,6 @@
     "node": ">=8.0.0"
   },
   "homepage": "http://github.com/pskzcompany/node-graylog",
-  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "http://github.com/pskzcompany/node-graylog.git"
