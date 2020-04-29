@@ -117,9 +117,7 @@ describe('Graylog', () => {
   });
 
   it('Checking `disablePromiseRejection` arg for `_log` operation', async () => {
-    const tmpClient = new Graylog({
-      servers,
-    });
+    const tmpClient = new Graylog({ servers });
     tmpClient.getClient().send = () => {
       throw new Error('Connection error');
     };
@@ -130,9 +128,7 @@ describe('Graylog', () => {
   });
 
   it('Checking regular log methods which resolve with false on error', async () => {
-    const tmpClient = new Graylog({
-      servers,
-    });
+    const tmpClient = new Graylog({ servers });
     tmpClient.getClient().send = () => {
       throw new Error('Connection error');
     };
@@ -165,12 +161,8 @@ describe('Graylog', () => {
 
   it('Checking `onError` param', async () => {
     let lastError;
-    const tmpClient = new Graylog({
-      servers,
-      onError: (e) => {
-        lastError = e;
-      },
-    });
+    const tmpClient = new Graylog({ servers });
+    tmpClient.onError((e) => (lastError = e));
     tmpClient.getClient().send = () => {
       throw new Error('Connection error');
     };

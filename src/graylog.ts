@@ -4,6 +4,7 @@ import dgram from 'dgram';
 import os from 'os';
 import { promisify } from 'util';
 import { GraylogGelfPayload, GraylogLevelEnum, GraylogGelfAdditionalField } from './definitions';
+import { EventEmitter } from 'events';
 
 const randomBytesAsync = promisify<number, Buffer>(crypto.randomBytes);
 const deflateAsync = promisify<zlib.InputType, Buffer>(zlib.deflate);
@@ -47,12 +48,6 @@ export interface GraylogConfig {
    *  - if message is big then will be used deflate before sending
    */
   deflate?: 'optimal' | 'always' | 'never';
-
-  /**
-   * this callback will be called if some error occurs when sending message
-   * (optional, default: do nothing)
-   */
-  onError?: (e: Error) => any;
 }
 
 export type AdditionalFields = {
@@ -68,7 +63,7 @@ export type AdditionalFields = {
  * Graylog instances emit errors. That means you really really should listen for them,
  * or accept uncaught exceptions (node throws if you don't listen for "error").
  */
-export default class Graylog {
+export default class Graylog extends EventEmitter {
   config: GraylogConfig;
   servers: HostPort[];
   client: dgram.Socket | undefined;
@@ -85,6 +80,8 @@ export default class Graylog {
   _onError?: (e: Error) => any;
 
   constructor(config: GraylogConfig) {
+    super();
+
     this.config = config;
     this.servers = config.servers.map((s) => ({ ...s })); // deep copy
     this.hostname = config.hostname || os.hostname();
@@ -95,10 +92,17 @@ export default class Graylog {
         'deflate must be one of "optimal", "always", or "never". was "' + this.deflate + '"'
       );
     }
-    if (typeof config.onError === 'function') {
-      this._onError = config.onError;
-    }
     if (config?.bufferSize && config.bufferSize > 0) this._bufferSize = config.bufferSize;
+  }
+
+  /**
+   * Add callback which will be called if some error occurs when sending message
+   *
+   * @return remove listener function
+   */
+  onError(cb: (e: Error) => any): Function {
+    this.addListener('err', cb);
+    return () => this.removeListener('err', cb);
   }
 
   getServer() {
@@ -188,7 +192,10 @@ export default class Graylog {
       return this.send(payload).then(
         (bytes) => bytes,
         (e) => {
-          if (this._onError) this._onError(e);
+          // DO NOT USE `error` key!
+          // it has specific behavior in NodeJS
+          // read https://nodejs.org/api/events.html#events_error_events
+          this.emit('err', e);
           return false;
         }
       );

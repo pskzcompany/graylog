@@ -84,6 +84,12 @@ class Graylog {
    * but before ensure that all messages already sended
    */
   close(): Promise<void>;
+
+  /**
+   * Add callback which will be called if some error occurs when sending message
+   * @return remove listener function
+   */
+  onError(cb: (e: Error) => any): Function;
 }
 ```
 
@@ -128,14 +134,6 @@ const logger = new Graylog({
    *  - if message is big then will be used deflate before sending
    */
   deflate: 'always',
-
-  /**
-   * this callback will be called if some error occurs when sending message
-   * (optional, default: do nothing)
-   */
-  onError: (e: Error) => {
-    console.error('Error while writing data to graylog:', e.message);
-  },
 });
 ```
 
